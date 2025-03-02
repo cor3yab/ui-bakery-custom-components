@@ -1,19 +1,36 @@
 function OpeningsTable() {
   console.log("🔹 Component is rendering...");
-  
-  if (typeof UB === "undefined" || typeof UB.useData !== "function") {
-    console.error("🚨 UB is not defined. Ensure this is running in the correct environment.");
-    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "\u26A0\uFE0F UB is not available. Ensure UB.useData() exists."));
+
+  // Initialize state with null to indicate data is loading
+  const [ubData, setUbData] = React.useState(null);
+
+  // Fetch UB data after the component mounts
+  React.useEffect(() => {
+    if (typeof UB !== "undefined" && typeof UB.useData === "function") {
+      console.log("🔹 Fetching UB Data...");
+      const data = UB.useData();
+      console.log("✅ UB Data Fetched:", data);
+      setUbData(data);
+    } else {
+      console.error("🚨 UB is not available. Ensure this is running inside UI Bakery.");
+    }
+  }, []);
+
+  // Show a loading state until UB data is available
+  if (!ubData) {
+    return React.createElement("div", null, "⏳ Loading data...");
   }
-  const ubData = typeof UB !== "undefined" && typeof UB.useData === "function" ? UB.useData() : {};
-    console.log("🔹 UB Data Loaded:", ubData);
+
+  // Now we can safely access UB data
   const savedData = ubData.savedData || [];
   const prepOptions = ubData.prepOptions || [];
   const prepByOptions = ubData.prepBy || [];
   const supplierPreps = ubData.supplierPreps || {};
   const inHousePreps = ubData.inHousePreps || {};
   const inHouseHourRate = ubData.inHouseHourRate || {};
+
   const [tableData, setTableData] = React.useState(savedData);
+
   React.useEffect(() => {
     console.log("📢 Updated tableData:", tableData);
     requestAnimationFrame(() => {
@@ -25,6 +42,14 @@ function OpeningsTable() {
       }
     });
   }, [tableData]);
+
+  return React.createElement("div", { className: "container" }, "Your Table Here...");
+}
+
+// ✅ Make OpeningsTable available globally for UI Bakery
+window.OpeningsTable = OpeningsTable;
+
+
   React.useEffect(() => {
     const link = document.createElement("link");
     link.rel = "stylesheet";
@@ -203,4 +228,4 @@ function OpeningsTable() {
     className: "fas fa-plus"
   }), " Add New Row")));
 }
-window.OpeningsTable = OpeningsTable;
+
