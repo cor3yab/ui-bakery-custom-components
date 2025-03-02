@@ -166,8 +166,6 @@
     );
   }
 
-  // ✅ Make OpeningsTable available globally for UI Bakery
-  window.OpeningsTable = OpeningsTable;
 })();
 
 // Ensure OpeningsTable is available globally
