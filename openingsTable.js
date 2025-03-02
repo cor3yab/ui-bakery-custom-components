@@ -202,3 +202,4 @@ function OpeningsTable() {
     className: "fas fa-plus"
   }), " Add New Row")));
 }
+window.OpeningsTable = OpeningsTable;
