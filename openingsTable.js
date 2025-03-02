@@ -45,26 +45,23 @@
       });
     }, [tableData]);
 
-    // ✅ Event Handlers: Ensure these are before the return statement
+    // ✅ Event Handlers
     const handleEdit = (id, field, value) => {
       const updatedData = tableData.map(row => {
         if (row.id === id) {
-          let updatedRow = {
-            ...row,
-            [field]: value
-          };
+          let updatedRow = { ...row, [field]: value };
 
           if (field === "prepBy" && value === "S") {
-            updatedRow.cost = row.prep && supplierPreps[row.prep] !== undefined ? supplierPreps[row.prep].cost : 0;
+            updatedRow.cost = row.prep && supplierPreps[row.prep] ? supplierPreps[row.prep].cost : 0;
           }
           if (field === "prepBy" && value === "INH") {
-            updatedRow.cost = row.prep && inHousePreps[row.prep] !== undefined ? inHousePreps[row.prep].cost : 0;
+            updatedRow.cost = row.prep && inHousePreps[row.prep] ? inHousePreps[row.prep].cost : 0;
           }
           if (field === "prep" && row.prepBy === "S") {
-            updatedRow.cost = supplierPreps[value] !== undefined ? supplierPreps[value].cost : 0;
+            updatedRow.cost = supplierPreps[value] ? supplierPreps[value].cost : 0;
           }
           if (field === "prep" && row.prepBy === "INH") {
-            updatedRow.cost = inHousePreps[value] !== undefined ? inHousePreps[value].cost : 0;
+            updatedRow.cost = inHousePreps[value] ? inHousePreps[value].cost : 0;
           }
           return updatedRow;
         }
@@ -104,7 +101,7 @@
       UB.updateValue([...tableData, newRow]);
     };
 
-    // ✅ Ensure return statement is last inside the function
+    // ✅ Ensure correct return statement
     return React.createElement("div", { className: "container" }, 
       React.createElement("table", null, 
         React.createElement("thead", null, 
@@ -163,12 +160,6 @@
     );
   }
 
-return React.createElement("div", { className: "container" }, 
-      React.createElement("p", null, "✅ UB Data Loaded!")
-    );
-  }
-)();
-
-// ✅ Move the global assignment outside of the function
+  // ✅ Move the global assignment outside of the function
   window.OpeningsTable = OpeningsTable;
-
+})();
