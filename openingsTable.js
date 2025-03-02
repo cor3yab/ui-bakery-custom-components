@@ -1,27 +1,24 @@
 (function () {
   function OpeningsTable() {
-    console.log("🔹 Component is rendering...");
-
-    // ✅ Get React from UI Bakery's global context (avoid duplicate React)
-    const { useState, useEffect } = React;
-
-    // ✅ Initialize state safely
-    const [ubData, setUbData] = useState(null);
-
-    // ✅ Fetch UB data after the component mounts
-    useEffect(() => {
-      if (typeof UB !== "undefined" && typeof UB.useData === "function") {
-        console.log("🔹 Fetching UB Data...");
-        setUbData(UB.useData());
-      } else {
-        console.error("🚨 UB is not available. Ensure this is running inside UI Bakery.");
-      }
-    }, []);
-
-    // ✅ Prevent React error: Don't render component if UB data is missing
-    if (ubData === null) {
-      return React.createElement("div", null, "⏳ Loading...");
+  console.log("🔹 Component is rendering...");
+  const { useState, useEffect } = React; // ✅ Ensure React is available
+  const [ubData, setUbData] = useState(null);
+  
+  useEffect(() => {
+    if (typeof UB !== "undefined" && typeof UB.useData === "function") {
+      console.log("🔹 Fetching UB Data...");
+      setUbData(UB.useData());
+    } else {
+      console.error("🚨 UB is not available.");
     }
+  }, []);
+
+  if (ubData === null) {
+    return React.createElement("div", null, "⏳ Loading...");
+  }
+
+  return React.createElement("div", null, "✅ UB Data Loaded!");
+}
 
     // ✅ Ensure UB data structure is correct
     const savedData = ubData?.savedData ?? [];
