@@ -1,53 +1,55 @@
-function OpeningsTable() {
-  console.log("🔹 Component is rendering...");
+(function () {
+  function OpeningsTable() {
+    console.log("🔹 Component is rendering...");
 
-  // Initialize state with null to indicate data is loading
-  const [ubData, setUbData] = React.useState(null);
+    // Initialize state with null to indicate data is loading
+    const [ubData, setUbData] = React.useState(null);
 
-  // Fetch UB data after the component mounts
-  React.useEffect(() => {
-    if (typeof UB !== "undefined" && typeof UB.useData === "function") {
-      console.log("🔹 Fetching UB Data...");
-      const data = UB.useData();
-      console.log("✅ UB Data Fetched:", data);
-      setUbData(data);
-    } else {
-      console.error("🚨 UB is not available. Ensure this is running inside UI Bakery.");
+    // Fetch UB data after the component mounts
+    React.useEffect(() => {
+      if (typeof UB !== "undefined" && typeof UB.useData === "function") {
+        console.log("🔹 Fetching UB Data...");
+        const data = UB.useData();
+        console.log("✅ UB Data Fetched:", data);
+        setUbData(data);
+      } else {
+        console.error("🚨 UB is not available. Ensure this is running inside UI Bakery.");
+      }
+    }, []);
+
+    // Show a loading state until UB data is available
+    if (!ubData) {
+      return React.createElement("div", null, "⏳ Loading data...");
     }
-  }, []);
 
-  // Show a loading state until UB data is available
-  if (!ubData) {
-    return React.createElement("div", null, "⏳ Loading data...");
+    // Now we can safely access UB data
+    const savedData = ubData.savedData || [];
+    const prepOptions = ubData.prepOptions || [];
+    const prepByOptions = ubData.prepBy || [];
+    const supplierPreps = ubData.supplierPreps || {};
+    const inHousePreps = ubData.inHousePreps || {};
+    const inHouseHourRate = ubData.inHouseHourRate || {};
+
+    const [tableData, setTableData] = React.useState(savedData);
+
+    React.useEffect(() => {
+      console.log("📢 Updated tableData:", tableData);
+      requestAnimationFrame(() => {
+        const table = document.querySelector("table");
+        if (table) {
+          const newHeight = table.scrollHeight + 50;
+          UB.setHeight(newHeight);
+          console.log("🔹 Resized component to:", newHeight);
+        }
+      });
+    }, [tableData]);
+
+    return React.createElement("div", { className: "container" }, "Your Table Here...");
   }
 
-  // Now we can safely access UB data
-  const savedData = ubData.savedData || [];
-  const prepOptions = ubData.prepOptions || [];
-  const prepByOptions = ubData.prepBy || [];
-  const supplierPreps = ubData.supplierPreps || {};
-  const inHousePreps = ubData.inHousePreps || {};
-  const inHouseHourRate = ubData.inHouseHourRate || {};
-
-  const [tableData, setTableData] = React.useState(savedData);
-
-  React.useEffect(() => {
-    console.log("📢 Updated tableData:", tableData);
-    requestAnimationFrame(() => {
-      const table = document.querySelector("table");
-      if (table) {
-        const newHeight = table.scrollHeight + 50;
-        UB.setHeight(newHeight);
-        console.log("🔹 Resized component to:", newHeight);
-      }
-    });
-  }, [tableData]);
-
-  return React.createElement("div", { className: "container" }, "Your Table Here...");
-}
-
-// ✅ Make OpeningsTable available globally for UI Bakery
-window.OpeningsTable = OpeningsTable;
+  // ✅ Make OpeningsTable available globally for UI Bakery
+  window.OpeningsTable = OpeningsTable;
+})();
 
 
   React.useEffect(() => {
