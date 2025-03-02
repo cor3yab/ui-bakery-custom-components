@@ -44,8 +44,7 @@
       });
     }, [tableData]);
 
-
-    // ✅ Event Handlers: Move inside the function
+    // ✅ Event Handlers: Ensure these are before the return statement
     const handleEdit = (id, field, value) => {
       const updatedData = tableData.map(row => {
         if (row.id === id) {
@@ -104,6 +103,7 @@
       UB.updateValue([...tableData, newRow]);
     };
 
+    // ✅ Ensure return statement is last inside the function
     return React.createElement("div", { className: "container" }, 
       React.createElement("table", null, 
         React.createElement("thead", null, 
