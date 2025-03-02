@@ -4,7 +4,9 @@
 
     const { useState, useEffect } = React; // ✅ Ensure React is available
     const [ubData, setUbData] = useState(null);
+    const [tableData, setTableData] = useState([]);
 
+    // ✅ Fetch UB Data Safely
     useEffect(() => {
       if (typeof UB !== "undefined" && typeof UB.useData === "function") {
         console.log("🔹 Fetching UB Data...");
@@ -12,27 +14,25 @@
         if (data) {
           console.log("✅ UB Data Loaded:", data);
           setUbData(data);
+          setTableData(data.savedData ?? []);
         } else {
           console.warn("⚠️ UB.useData() returned undefined.");
         }
       } else {
         console.error("🚨 UB is not available.");
       }
-    }, []);
+    }, []); // ✅ Only run once when the component mounts
 
+    // ✅ Prevent rendering errors if data is not loaded
     if (!ubData) {
       return React.createElement("div", null, "⏳ Loading...");
     }
 
-    // ✅ Ensure UB data structure is correct (move inside the function)
-    const savedData = ubData?.savedData ?? [];
+    // ✅ Ensure UB data structure is correct
     const prepOptions = ubData?.prepOptions ?? [];
     const prepByOptions = ubData?.prepBy ?? [];
     const supplierPreps = ubData?.supplierPreps ?? {};
     const inHousePreps = ubData?.inHousePreps ?? {};
-    const inHouseHourRate = ubData?.inHouseHourRate ?? {};
-
-    const [tableData, setTableData] = useState(savedData);
 
     useEffect(() => {
       console.log("📢 Updated tableData:", tableData);
@@ -44,7 +44,7 @@
           console.log("🔹 Resized component to:", newHeight);
         }
       });
-    }, [tableData]);
+    }, [tableData]); // ✅ Run when `tableData` updates
 
     // ✅ Event Handlers
     const handleEdit = (id, field, value) => {
