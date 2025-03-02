@@ -2,26 +2,31 @@
   function OpeningsTable() {
     console.log("🔹 Component is rendering...");
 
-    const { useState, useEffect } = React; // ✅ Ensure React is available
+    const { useState, useEffect } = React;
     const [ubData, setUbData] = useState(null);
     const [tableData, setTableData] = useState([]);
 
-    // ✅ Fetch UB Data Safely
+    // ✅ Fetch UB Data Safely Inside useEffect
     useEffect(() => {
       if (typeof UB !== "undefined" && typeof UB.useData === "function") {
-        console.log("🔹 Fetching UB Data...");
-        const data = UB.useData();
-        if (data) {
-          console.log("✅ UB Data Loaded:", data);
-          setUbData(data);
-          setTableData(data.savedData ?? []);
-        } else {
-          console.warn("⚠️ UB.useData() returned undefined.");
+        try {
+          console.log("🔹 Fetching UB Data...");
+          const data = UB.useData(); // <-- Safely fetching UB data
+          
+          if (data) {
+            console.log("✅ UB Data Loaded:", data);
+            setUbData(data);
+            setTableData(data.savedData ?? []);
+          } else {
+            console.warn("⚠️ UB.useData() returned undefined.");
+          }
+        } catch (error) {
+          console.error("🚨 Error while fetching UB Data:", error);
         }
       } else {
-        console.error("🚨 UB is not available.");
+        console.error("🚨 UB is not available or not initialized.");
       }
-    }, []); // ✅ Only run once when the component mounts
+    }, []); // ✅ Run only once when component mounts
 
     // ✅ Prevent rendering errors if data is not loaded
     if (!ubData) {
@@ -33,18 +38,6 @@
     const prepByOptions = ubData?.prepBy ?? [];
     const supplierPreps = ubData?.supplierPreps ?? {};
     const inHousePreps = ubData?.inHousePreps ?? {};
-
-    useEffect(() => {
-      console.log("📢 Updated tableData:", tableData);
-      requestAnimationFrame(() => {
-        const table = document.querySelector("table");
-        if (table) {
-          const newHeight = table.scrollHeight + 50;
-          UB.setHeight(newHeight);
-          console.log("🔹 Resized component to:", newHeight);
-        }
-      });
-    }, [tableData]); // ✅ Run when `tableData` updates
 
     // ✅ Event Handlers
     const handleEdit = (id, field, value) => {
