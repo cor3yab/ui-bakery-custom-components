@@ -167,7 +167,7 @@ return React.createElement("div", { className: "container" },
       React.createElement("p", null, "✅ UB Data Loaded!")
     );
   }
-})();
+)();
 
 // ✅ Move the global assignment outside of the function
   window.OpeningsTable = OpeningsTable;
