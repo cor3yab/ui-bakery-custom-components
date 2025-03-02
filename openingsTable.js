@@ -263,5 +263,3 @@ function OpeningsTable() {
     })]
   });
 }
-const Component = UB.connectReactComponent(OpeningsTable);
-ReactDOM.render(/*#__PURE__*/_jsx(Component, {}), document.getElementById("root"));
