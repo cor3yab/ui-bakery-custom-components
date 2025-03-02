@@ -4,17 +4,23 @@
 
     const { useState, useEffect } = React; // ✅ Ensure React is available
     const [ubData, setUbData] = useState(null);
-    
+
     useEffect(() => {
       if (typeof UB !== "undefined" && typeof UB.useData === "function") {
         console.log("🔹 Fetching UB Data...");
-        setUbData(UB.useData());
+        const data = UB.useData();
+        if (data) {
+          console.log("✅ UB Data Loaded:", data);
+          setUbData(data);
+        } else {
+          console.warn("⚠️ UB.useData() returned undefined.");
+        }
       } else {
         console.error("🚨 UB is not available.");
       }
     }, []);
 
-    if (ubData === null) {
+    if (!ubData) {
       return React.createElement("div", null, "⏳ Loading...");
     }
 
