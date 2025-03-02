@@ -44,10 +44,6 @@
       });
     }, [tableData]);
 
-    return React.createElement("div", { className: "container" }, 
-      React.createElement("p", null, "✅ UB Data Loaded Successfully!")
-    );
-  }
 
     // ✅ Event Handlers: Move inside the function
     const handleEdit = (id, field, value) => {
