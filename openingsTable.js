@@ -2,16 +2,17 @@
   function OpeningsTable() {
     console.log("🔹 Component is rendering...");
 
-    // Initialize state with null to indicate data is loading
-    const [ubData, setUbData] = React.useState(null);
+    // ✅ Get React from UI Bakery's global context (avoid duplicate React)
+    const { useState, useEffect } = React;
 
-    // Fetch UB data after the component mounts
-    React.useEffect(() => {
+    // ✅ Initialize state safely
+    const [ubData, setUbData] = useState(null);
+
+    // ✅ Fetch UB data after the component mounts
+    useEffect(() => {
       if (typeof UB !== "undefined" && typeof UB.useData === "function") {
         console.log("🔹 Fetching UB Data...");
-        const data = UB.useData();
-        console.log("✅ UB Data Fetched:", data);
-        setUbData(data);
+        setUbData(UB.useData());
       } else {
         console.error("🚨 UB is not available. Ensure this is running inside UI Bakery.");
       }
@@ -21,6 +22,9 @@
     if (ubData === null) {
       return React.createElement("div", null, "⏳ Loading...");
     }
+
+    return React.createElement("div", null, "✅ UB Data Loaded!");
+  }
 
     // Ensure UB data structure is correct
     const savedData = ubData?.savedData ?? [];
