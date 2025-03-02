@@ -1,11 +1,12 @@
 function OpeningsTable() {
   console.log("🔹 Component is rendering...");
+  
   if (typeof UB === "undefined" || typeof UB.useData !== "function") {
     console.error("🚨 UB is not defined. Ensure this is running in the correct environment.");
     return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("strong", null, "\u26A0\uFE0F UB is not available. Ensure UB.useData() exists."));
   }
-  const ubData = UB.useData();
-  console.log("🔹 UB Data Loaded:", ubData);
+  const ubData = typeof UB !== "undefined" && typeof UB.useData === "function" ? UB.useData() : {};
+    console.log("🔹 UB Data Loaded:", ubData);
   const savedData = ubData.savedData || [];
   const prepOptions = ubData.prepOptions || [];
   const prepByOptions = ubData.prepBy || [];
