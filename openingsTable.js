@@ -1,26 +1,24 @@
 (function () {
   function OpeningsTable() {
-  console.log("🔹 Component is rendering...");
-  const { useState, useEffect } = React; // ✅ Ensure React is available
-  const [ubData, setUbData] = useState(null);
-  
-  useEffect(() => {
-    if (typeof UB !== "undefined" && typeof UB.useData === "function") {
-      console.log("🔹 Fetching UB Data...");
-      setUbData(UB.useData());
-    } else {
-      console.error("🚨 UB is not available.");
+    console.log("🔹 Component is rendering...");
+
+    const { useState, useEffect } = React; // ✅ Ensure React is available
+    const [ubData, setUbData] = useState(null);
+    
+    useEffect(() => {
+      if (typeof UB !== "undefined" && typeof UB.useData === "function") {
+        console.log("🔹 Fetching UB Data...");
+        setUbData(UB.useData());
+      } else {
+        console.error("🚨 UB is not available.");
+      }
+    }, []);
+
+    if (ubData === null) {
+      return React.createElement("div", null, "⏳ Loading...");
     }
-  }, []);
 
-  if (ubData === null) {
-    return React.createElement("div", null, "⏳ Loading...");
-  }
-
-  return React.createElement("div", null, "✅ UB Data Loaded!");
-}
-
-    // ✅ Ensure UB data structure is correct
+    // ✅ Ensure UB data structure is correct (move inside the function)
     const savedData = ubData?.savedData ?? [];
     const prepOptions = ubData?.prepOptions ?? [];
     const prepByOptions = ubData?.prepBy ?? [];
