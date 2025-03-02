@@ -17,18 +17,18 @@
       }
     }, []);
 
-    // Show a loading state until UB data is available
-    if (!ubData) {
-      return React.createElement("div", null, "⏳ Loading data...");
+    // ✅ Prevent React error: Don't render component if UB data is missing
+    if (ubData === null) {
+      return React.createElement("div", null, "⏳ Loading...");
     }
 
-    // Now we can safely access UB data
-    const savedData = ubData.savedData || [];
-    const prepOptions = ubData.prepOptions || [];
-    const prepByOptions = ubData.prepBy || [];
-    const supplierPreps = ubData.supplierPreps || {};
-    const inHousePreps = ubData.inHousePreps || {};
-    const inHouseHourRate = ubData.inHouseHourRate || {};
+    // Ensure UB data structure is correct
+    const savedData = ubData?.savedData ?? [];
+    const prepOptions = ubData?.prepOptions ?? [];
+    const prepByOptions = ubData?.prepBy ?? [];
+    const supplierPreps = ubData?.supplierPreps ?? {};
+    const inHousePreps = ubData?.inHousePreps ?? {};
+    const inHouseHourRate = ubData?.inHouseHourRate ?? {};
 
     const [tableData, setTableData] = React.useState(savedData);
 
@@ -43,6 +43,11 @@
         }
       });
     }, [tableData]);
+
+    return React.createElement("div", { className: "container" }, 
+      React.createElement("p", null, "✅ UB Data Loaded Successfully!")
+    );
+  }
 
     // ✅ Event Handlers: Move inside the function
     const handleEdit = (id, field, value) => {
