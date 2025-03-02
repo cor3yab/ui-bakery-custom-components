@@ -23,10 +23,7 @@
       return React.createElement("div", null, "⏳ Loading...");
     }
 
-    return React.createElement("div", null, "✅ UB Data Loaded!");
-  }
-
-    // Ensure UB data structure is correct
+    // ✅ Ensure UB data structure is correct
     const savedData = ubData?.savedData ?? [];
     const prepOptions = ubData?.prepOptions ?? [];
     const prepByOptions = ubData?.prepBy ?? [];
@@ -34,9 +31,9 @@
     const inHousePreps = ubData?.inHousePreps ?? {};
     const inHouseHourRate = ubData?.inHouseHourRate ?? {};
 
-    const [tableData, setTableData] = React.useState(savedData);
+    const [tableData, setTableData] = useState(savedData);
 
-    React.useEffect(() => {
+    useEffect(() => {
       console.log("📢 Updated tableData:", tableData);
       requestAnimationFrame(() => {
         const table = document.querySelector("table");
@@ -166,9 +163,12 @@
     );
   }
 
+return React.createElement("div", { className: "container" }, 
+      React.createElement("p", null, "✅ UB Data Loaded!")
+    );
+  }
+
+  // ✅ Move the global assignment outside of the function
+  window.OpeningsTable = OpeningsTable;
 })();
-
-// Ensure OpeningsTable is available globally
-window.OpeningsTable = OpeningsTable;
-
 
