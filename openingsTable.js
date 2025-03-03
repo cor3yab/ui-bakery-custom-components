@@ -4,25 +4,33 @@
 
     const { useState } = React;
 
-    // ✅ Ensure UB API is available **before** executing any logic
+    // ✅ State for table data & re-render trigger
+    const [tableData, setTableData] = useState([]);
+    const [renderKey, setRenderKey] = useState(0); // ✅ Dummy state for forcing re-renders
+
+    // ✅ Ensure UB API is available
     if (typeof UB === "undefined" || typeof UB.useData !== "function") {
       console.error("🚨 UB API is missing. Cannot load data.");
       return React.createElement("div", null, "🚨 UB API is not available.");
     }
 
-    // ✅ Fetch UB Data before rendering
+    // ✅ Fetch UB Data
     console.log("🔹 Fetching UB Data...");
     const ubData = UB.useData();
 
     if (!ubData) {
       console.warn("⚠️ UB Data is not ready yet.");
+      setTimeout(() => setRenderKey(prev => prev + 1), 500); // ✅ Retry & force render
       return React.createElement("div", null, "⏳ Loading UB Data...");
     }
 
     console.log("✅ UB Data Loaded:", ubData);
 
-    // ✅ Initialize state with UB data **after confirming it's available**
-    const [tableData, setTableData] = useState(ubData.savedData ?? []);
+    // ✅ Load UB data only once
+    if (tableData.length === 0 && ubData.savedData?.length) {
+      setTableData(ubData.savedData);
+      setTimeout(() => setRenderKey(prev => prev + 1), 0); // ✅ Ensure UI updates
+    }
 
     // ✅ Ensure UB data structure is correct
     const prepOptions = ubData?.prepOptions ?? [];
@@ -84,7 +92,7 @@
       UB.updateValue(updatedData);
     };
 
-    return React.createElement("div", { className: "container" }, 
+    return React.createElement("div", { className: "container", key: renderKey }, 
       React.createElement("table", null, 
         React.createElement("thead", null, 
           React.createElement("tr", null, 
