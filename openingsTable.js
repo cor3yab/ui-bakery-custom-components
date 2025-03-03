@@ -2,33 +2,31 @@
   function OpeningsTable() {
     console.log("🔹 Component is rendering...");
 
+    // ✅ Use React from UI Bakery (no duplicate instances)
     const { useState, useEffect } = React;
+
+    // ✅ Initialize state safely
     const [ubData, setUbData] = useState(null);
     const [tableData, setTableData] = useState([]);
 
-    // ✅ Fetch UB Data Safely Inside useEffect
-    useEffect(() => {
-      if (typeof UB !== "undefined" && typeof UB.useData === "function") {
-        try {
-          console.log("🔹 Fetching UB Data...");
-          const data = UB.useData(); // <-- Safely fetching UB data
-          
-          if (data) {
-            console.log("✅ UB Data Loaded:", data);
-            setUbData(data);
-            setTableData(data.savedData ?? []);
-          } else {
-            console.warn("⚠️ UB.useData() returned undefined.");
-          }
-        } catch (error) {
-          console.error("🚨 Error while fetching UB Data:", error);
+    // ✅ Fetch UB data directly in component (if UB.useData is a hook)
+    if (typeof UB !== "undefined" && typeof UB.useData === "function") {
+      console.log("🔹 Fetching UB Data...");
+      try {
+        const data = UB.useData(); // ✅ Call it inside component function
+        console.log("✅ UB Data Loaded:", data);
+        if (data) {
+          setUbData(data);
+          setTableData(data.savedData ?? []);
         }
-      } else {
-        console.error("🚨 UB is not available or not initialized.");
+      } catch (error) {
+        console.error("🚨 Error fetching UB Data:", error);
       }
-    }, []); // ✅ Run only once when component mounts
+    } else {
+      console.warn("⚠️ UB.useData() is unavailable.");
+    }
 
-    // ✅ Prevent rendering errors if data is not loaded
+    // ✅ Prevent rendering errors if UB data isn't ready
     if (!ubData) {
       return React.createElement("div", null, "⏳ Loading...");
     }
