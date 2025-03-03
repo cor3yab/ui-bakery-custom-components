@@ -3,22 +3,32 @@
     const { useState, useEffect } = React;
     const [ubData, setUbData] = useState(null);
     const [error, setError] = useState(null);
+    const [attempts, setAttempts] = useState(0);
 
     useEffect(() => {
-      async function fetchData() {
+      function fetchData() {
         try {
           if (typeof UB !== "undefined" && typeof UB.useData === "function") {
             console.log("🔹 Fetching UB Data...");
-            const data = await UB.useData();
+            const data = UB.useData();
 
             if (data) {
               console.log("✅ UB Data Loaded:", data);
               setUbData(data);
             } else {
               console.warn("⚠️ UB.useData() returned undefined.");
+              setTimeout(fetchData, 500); // Retry in 500ms
             }
           } else {
-            throw new Error("UB is not available.");
+            console.error("🚨 UB is not ready. Retrying...");
+            if (attempts < 5) {
+              setTimeout(() => {
+                setAttempts(prev => prev + 1);
+                fetchData();
+              }, 1000); // Wait 1 sec and retry
+            } else {
+              setError(new Error("UB failed to initialize after 5 attempts."));
+            }
           }
         } catch (err) {
           console.error("🚨 Error fetching UB Data:", err);
@@ -35,14 +45,17 @@
   function OpeningsTable() {
     console.log("🔹 Component is rendering...");
 
-    const { useState } = React;
+    const { useState, useEffect } = React;
     const { ubData, error } = useUbData(); // ✅ Fetch UB Data via Custom Hook
     const [tableData, setTableData] = useState([]);
 
     // ✅ Populate tableData once UB data is available
-    React.useEffect(() => {
+    useEffect(() => {
       if (ubData?.savedData) {
-        setTableData(ubData.savedData);
+        setTableData(ubData.savedData.map(row => ({
+          ...row,
+          cost: typeof row.cost === "number" ? row.cost : 0 // Ensure cost is a number
+        })));
       }
     }, [ubData]);
 
@@ -108,7 +121,7 @@
     }
 
     if (!ubData) {
-      return React.createElement("div", null, "⏳ Loading...");
+      return React.createElement("div", null, "⏳ Loading UB Data...");
     }
 
     // ✅ Ensure UB data structure
@@ -155,7 +168,7 @@
             ), 
             React.createElement("td", null, 
               React.createElement("span", null, 
-                typeof row.cost === "number" ? `$${row.cost.toFixed(2)}` : "$0.00"
+                `$${(row.cost || 0).toFixed(2)}`
               )
             ), 
             React.createElement("td", null, 
