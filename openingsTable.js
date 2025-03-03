@@ -3,23 +3,15 @@
     console.log("🔹 Component is rendering...");
 
     const { useState, useEffect } = React;
-    
-    // ✅ Ensure UB Data is always initialized properly
-    const [ubData, setUbData] = useState({
-      savedData: [],
-      prepOptions: [],
-      prepBy: [],
-      supplierPreps: {},
-      inHousePreps: {}
-    });
 
+    // ✅ State for UB Data
+    const [ubData, setUbData] = useState(null);
     const [tableData, setTableData] = useState([]);
+    const [isDataFetched, setIsDataFetched] = useState(false); // ✅ Prevent multiple fetches
 
-   useEffect(() => {
-      if (fetchedRef.current) return; // ⛔ Stop if already fetched
-      fetchedRef.current = true; // ✅ Mark as fetched
-
-      if (typeof UB !== "undefined" && typeof UB.useData === "function") {
+    // ✅ Fetch UB Data Once
+    useEffect(() => {
+      if (!isDataFetched && typeof UB !== "undefined" && typeof UB.useData === "function") {
         try {
           console.log("🔹 Fetching UB Data...");
           const data = UB.useData();
@@ -28,6 +20,7 @@
             console.log("✅ UB Data Loaded:", data);
             setUbData(data);
             setTableData(data.savedData ?? []);
+            setIsDataFetched(true); // ✅ Prevent further fetches
           } else {
             console.warn("⚠️ UB.useData() returned undefined.");
           }
@@ -35,9 +28,9 @@
           console.error("🚨 Error fetching UB Data:", error);
         }
       } else {
-        console.error("🚨 UB is not available.");
+        console.error("🚨 UB is not available or already fetched.");
       }
-    }, []); // ✅ Only runs once when the component mounts
+    }, [isDataFetched]); // ✅ Runs only once
 
     // ✅ Event Handlers (MUST be before return!)
     const handleAddRow = () => {
