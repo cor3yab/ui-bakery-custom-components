@@ -136,7 +136,10 @@
               )
             ), 
             React.createElement("td", null, 
-              React.createElement("span", null, row.cost !== undefined ? `$${row.cost.toFixed(2)}` : "$0.00")
+              React.createElement("span", null, 
+  typeof row.cost === "number" ? `$${row.cost.toFixed(2)}` : "$0.00"
+)
+
             ), 
             React.createElement("td", null, 
               React.createElement("button", { className: "delete-button", onClick: () => handleDelete(row.id) }, 
