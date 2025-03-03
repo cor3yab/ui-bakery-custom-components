@@ -15,27 +15,25 @@
 
     const [tableData, setTableData] = useState([]);
 
-    // ✅ Fetch UB Data Once
-    useEffect(() => {
-      if (typeof UB !== "undefined" && typeof UB.useData === "function") {
-        try {
-          console.log("🔹 Fetching UB Data...");
-          const data = UB.useData();
-          
-          if (data) {
-            console.log("✅ UB Data Loaded:", data);
-            setUbData(data);
-            setTableData(data.savedData ?? []);
-          } else {
-            console.warn("⚠️ UB.useData() returned undefined.");
-          }
-        } catch (error) {
-          console.error("🚨 Error fetching UB Data:", error);
+    // ✅ Get UB Data using a React Hook
+    if (typeof UB !== "undefined" && typeof UB.useData === "function") {
+      try {
+        console.log("🔹 Fetching UB Data...");
+        const data = UB.useData(); // ✅ Call useData inside the function component
+
+        if (data) {
+          console.log("✅ UB Data Loaded:", data);
+          setUbData(data);
+          setTableData(data.savedData ?? []);
+        } else {
+          console.warn("⚠️ UB.useData() returned undefined.");
         }
-      } else {
-        console.error("🚨 UB is not available.");
+      } catch (error) {
+        console.error("🚨 Error fetching UB Data:", error);
       }
-    }, []);
+    } else {
+      console.error("🚨 UB is not available.");
+    }
 
     // ✅ Event Handlers (MUST be before return!)
     const handleAddRow = () => {
