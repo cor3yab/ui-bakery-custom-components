@@ -2,10 +2,9 @@
   function OpeningsTable() {
     console.log("🔹 Component is rendering...");
 
-    // ✅ Use React from UI Bakery (no duplicate instances)
     const { useState, useEffect } = React;
-
-    // ✅ Initialize state safely
+    
+    // ✅ Ensure UB Data is always initialized properly
     const [ubData, setUbData] = useState({
       savedData: [],
       prepOptions: [],
@@ -13,6 +12,7 @@
       supplierPreps: {},
       inHousePreps: {}
     });
+
     const [tableData, setTableData] = useState([]);
 
     // ✅ Fetch UB Data Once
@@ -37,29 +37,35 @@
       }
     }, []);
 
-    // ✅ Ensure UB data structure is correct
-    const prepOptions = ubData?.prepOptions ?? [];
-    const prepByOptions = ubData?.prepBy ?? [];
-    const supplierPreps = ubData?.supplierPreps ?? {};
-    const inHousePreps = ubData?.inHousePreps ?? {};
+    // ✅ Event Handlers (MUST be before return!)
+    const handleAddRow = () => {
+      const newRow = {
+        id: Math.random().toString(36).substr(2, 9),
+        prep: "",
+        prepBy: "",
+        cost: 0.0,
+        incInList: false
+      };
+      setTableData([...tableData, newRow]);
+      UB.updateValue([...tableData, newRow]);
+    };
 
-    // ✅ Event Handlers
     const handleEdit = (id, field, value) => {
       const updatedData = tableData.map(row => {
         if (row.id === id) {
           let updatedRow = { ...row, [field]: value };
 
           if (field === "prepBy" && value === "S") {
-            updatedRow.cost = row.prep && supplierPreps[row.prep] ? supplierPreps[row.prep].cost : 0;
+            updatedRow.cost = row.prep && ubData.supplierPreps[row.prep] ? ubData.supplierPreps[row.prep].cost : 0;
           }
           if (field === "prepBy" && value === "INH") {
-            updatedRow.cost = row.prep && inHousePreps[row.prep] ? inHousePreps[row.prep].cost : 0;
+            updatedRow.cost = row.prep && ubData.inHousePreps[row.prep] ? ubData.inHousePreps[row.prep].cost : 0;
           }
           if (field === "prep" && row.prepBy === "S") {
-            updatedRow.cost = supplierPreps[value] ? supplierPreps[value].cost : 0;
+            updatedRow.cost = ubData.supplierPreps[value] ? ubData.supplierPreps[value].cost : 0;
           }
           if (field === "prep" && row.prepBy === "INH") {
-            updatedRow.cost = inHousePreps[value] ? inHousePreps[value].cost : 0;
+            updatedRow.cost = ubData.inHousePreps[value] ? ubData.inHousePreps[value].cost : 0;
           }
           return updatedRow;
         }
@@ -87,19 +93,16 @@
       UB.updateValue(updatedData);
     };
 
-    const handleAddRow = () => {
-      const newRow = {
-        id: Math.random().toString(36).substr(2, 9),
-        prep: "",
-        prepBy: "",
-        cost: 0.0,
-        incInList: false
-      };
-      setTableData([...tableData, newRow]);
-      UB.updateValue([...tableData, newRow]);
-    };
+    // ✅ Prevent Render Errors
+    if (!ubData || !ubData.savedData) {
+      return React.createElement("div", null, "⏳ Loading...");
+    }
 
-    // ✅ Ensure correct return statement
+    // ✅ Ensure UB data structure
+    const prepOptions = ubData.prepOptions ?? [];
+    const prepByOptions = ubData.prepBy ?? {};
+
+    // ✅ Fix row.cost issue
     return React.createElement("div", { className: "container" }, 
       React.createElement("table", null, 
         React.createElement("thead", null, 
@@ -143,9 +146,8 @@
             ), 
             React.createElement("td", null, 
               React.createElement("span", null, 
-  typeof row.cost === "number" ? `$${row.cost.toFixed(2)}` : "$0.00"
-)
-
+                typeof row.cost === "number" ? `$${row.cost.toFixed(2)}` : "$0.00"
+              )
             ), 
             React.createElement("td", null, 
               React.createElement("button", { className: "delete-button", onClick: () => handleDelete(row.id) }, 
@@ -161,6 +163,6 @@
     );
   }
 
-  // ✅ Move the global assignment outside of the function
+  // ✅ Ensure Global Availability
   window.OpeningsTable = OpeningsTable;
 })();
