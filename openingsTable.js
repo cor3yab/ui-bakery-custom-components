@@ -15,27 +15,27 @@
     });
     const [tableData, setTableData] = useState([]);
 
-    // ✅ Fetch UB data directly in component (if UB.useData is a hook)
-    if (typeof UB !== "undefined" && typeof UB.useData === "function") {
-      console.log("🔹 Fetching UB Data...");
-      try {
-        const data = UB.useData(); // ✅ Call it inside component function
-        console.log("✅ UB Data Loaded:", data);
-        if (data) {
-          setUbData(data);
-          setTableData(data.savedData ?? []);
+    // ✅ Fetch UB Data Once
+    useEffect(() => {
+      if (typeof UB !== "undefined" && typeof UB.useData === "function") {
+        try {
+          console.log("🔹 Fetching UB Data...");
+          const data = UB.useData();
+          
+          if (data) {
+            console.log("✅ UB Data Loaded:", data);
+            setUbData(data);
+            setTableData(data.savedData ?? []);
+          } else {
+            console.warn("⚠️ UB.useData() returned undefined.");
+          }
+        } catch (error) {
+          console.error("🚨 Error fetching UB Data:", error);
         }
-      } catch (error) {
-        console.error("🚨 Error fetching UB Data:", error);
+      } else {
+        console.error("🚨 UB is not available.");
       }
-    } else {
-      console.warn("⚠️ UB.useData() is unavailable.");
-    }
-
-    // ✅ Prevent rendering errors if UB data isn't ready
-    if (!ubData) {
-      return React.createElement("div", null, "⏳ Loading...");
-    }
+    }, []);
 
     // ✅ Ensure UB data structure is correct
     const prepOptions = ubData?.prepOptions ?? [];
