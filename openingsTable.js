@@ -128,7 +128,7 @@
             ), 
             React.createElement("td", null, 
               React.createElement("span", null, 
-                `$${(row.cost || 0).toFixed(2)}`
+                `$${Number(row.cost || 0).toFixed(2)}`
               )
             ), 
             React.createElement("td", null, 
