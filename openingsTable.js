@@ -1,37 +1,28 @@
 (function () {
   function OpeningsTable() {
-    console.log("🔹 Component is rendering...");
+    console.log("🔹 Component is initializing...");
 
-    const { useState, useEffect } = React;
+    const { useState } = React;
 
-    // ✅ State for UB Data
-    const [ubData, setUbData] = useState(null);
-    const [tableData, setTableData] = useState([]);
+    // ✅ Ensure UB API is available **before** executing any logic
+    if (typeof UB === "undefined" || typeof UB.useData !== "function") {
+      console.error("🚨 UB API is missing. Cannot load data.");
+      return React.createElement("div", null, "🚨 UB API is not available.");
+    }
 
-    // ✅ Fetch UB Data When Component Loads
-    useEffect(() => {
-      if (typeof UB !== "undefined" && typeof UB.useData === "function") {
-        console.log("🔹 Fetching UB Data...");
-        const data = UB.useData();
+    // ✅ Fetch UB Data before rendering
+    console.log("🔹 Fetching UB Data...");
+    const ubData = UB.useData();
 
-        if (data) {
-          console.log("✅ UB Data Loaded:", data);
-          setUbData(data);
-          setTableData(data.savedData ?? []);
-        } else {
-          console.warn("⚠️ UB.useData() returned undefined.");
-        }
-      } else {
-        console.error("🚨 UB API is not available.");
-      }
-    }, []); // ✅ Runs once on mount
-
-    // ✅ Show Loading Until Data is Ready
     if (!ubData) {
+      console.warn("⚠️ UB Data is not ready yet.");
       return React.createElement("div", null, "⏳ Loading UB Data...");
     }
 
-    console.log("✅ UB Data is Ready:", ubData);
+    console.log("✅ UB Data Loaded:", ubData);
+
+    // ✅ Initialize state with UB data **after confirming it's available**
+    const [tableData, setTableData] = useState(ubData.savedData ?? []);
 
     // ✅ Ensure UB data structure is correct
     const prepOptions = ubData?.prepOptions ?? [];
