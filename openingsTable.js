@@ -1,51 +1,36 @@
 (function () {
-  function fetchUbData(callback) {
-    let attempts = 0;
-
-    function tryFetching() {
-      try {
-        if (typeof UB !== "undefined" && typeof UB.useData === "function") {
-          console.log("🔹 Fetching UB Data...");
-          const data = UB.useData();
-
-          if (data) {
-            console.log("✅ UB Data Loaded:", data);
-            callback(null, data);
-          } else {
-            console.warn("⚠️ UB.useData() returned undefined. Retrying...");
-            if (attempts < 5) {
-              attempts++;
-              setTimeout(tryFetching, 1000); // Retry every second
-            } else {
-              callback(new Error("UB.useData() failed after 5 attempts"));
-            }
-          }
-        } else {
-          console.error("🚨 UB is not ready. Retrying...");
-          if (attempts < 5) {
-            attempts++;
-            setTimeout(tryFetching, 1000);
-          } else {
-            callback(new Error("UB API not available"));
-          }
-        }
-      } catch (err) {
-        callback(err);
-      }
-    }
-
-    tryFetching();
-  }
-
-  function OpeningsTable({ ubData }) {
+  function OpeningsTable() {
     console.log("🔹 Component is rendering...");
 
     const { useState } = React;
-    const [tableData, setTableData] = useState(ubData?.savedData ?? []);
 
-    // ✅ Ensure valid data
+    // ✅ State for Table Data
+    const [tableData, setTableData] = useState([]);
+
+    // ✅ Ensure UB API is available
+    if (typeof UB === "undefined" || typeof UB.useData !== "function") {
+      console.error("🚨 UB API is missing. Cannot load data.");
+      return React.createElement("div", null, "🚨 UB API is not available.");
+    }
+
+    // ✅ Fetch Data Directly from UB When Component is Created
+    const ubData = UB.useData();
+
+    if (!ubData) {
+      console.warn("⚠️ UB Data is not ready yet.");
+      return React.createElement("div", null, "⏳ Loading UB Data...");
+    }
+
+    console.log("✅ UB Data Loaded:", ubData);
+
+    // ✅ Ensure UB data structure is correct
     const prepOptions = ubData?.prepOptions ?? [];
     const prepByOptions = ubData?.prepBy ?? [];
+    
+    // ✅ Load initial data if not set
+    if (tableData.length === 0 && ubData.savedData?.length) {
+      setTableData(ubData.savedData);
+    }
 
     // ✅ Event Handlers
     const handleAddRow = () => {
@@ -57,7 +42,7 @@
         incInList: false
       };
       setTableData(prevData => [...prevData, newRow]);
-      UB.updateValue([...tableData, newRow]);
+      UB.updateValue([...tableData, newRow]); // ✅ External UB Update
     };
 
     const handleEdit = (id, field, value) => {
@@ -160,13 +145,6 @@
     );
   }
 
-  // ✅ Fetch UB Data and Then Render Component
-  fetchUbData((err, ubData) => {
-    if (err) {
-      console.error("🚨 UB Data Fetch Error:", err);
-      window.OpeningsTable = () => React.createElement("div", null, `🚨 Error: ${err.message}`);
-    } else {
-      window.OpeningsTable = () => React.createElement(OpeningsTable, { ubData });
-    }
-  });
+  // ✅ Attach Component to Window for External Use
+  window.OpeningsTable = OpeningsTable;
 })();
