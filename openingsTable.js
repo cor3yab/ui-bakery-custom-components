@@ -4,16 +4,13 @@
 
     const { useState } = React;
 
-    // ✅ State for Table Data
-    const [tableData, setTableData] = useState([]);
-
     // ✅ Ensure UB API is available
     if (typeof UB === "undefined" || typeof UB.useData !== "function") {
       console.error("🚨 UB API is missing. Cannot load data.");
       return React.createElement("div", null, "🚨 UB API is not available.");
     }
 
-    // ✅ Fetch Data Directly from UB When Component is Created
+    // ✅ Fetch UB Data Directly Once
     const ubData = UB.useData();
 
     if (!ubData) {
@@ -23,14 +20,12 @@
 
     console.log("✅ UB Data Loaded:", ubData);
 
+    // ✅ Initialize Table Data Once
+    const [tableData, setTableData] = useState(() => ubData.savedData || []);
+
     // ✅ Ensure UB data structure is correct
     const prepOptions = ubData?.prepOptions ?? [];
     const prepByOptions = ubData?.prepBy ?? [];
-    
-    // ✅ Load initial data if not set
-    if (tableData.length === 0 && ubData.savedData?.length) {
-      setTableData(ubData.savedData);
-    }
 
     // ✅ Event Handlers
     const handleAddRow = () => {
