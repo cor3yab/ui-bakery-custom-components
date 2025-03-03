@@ -13,7 +13,7 @@
     console.log("🔹 Fetching UB Data...");
     
     try {
-      const ubData = UB.useData(); // ✅ Call it like a React Hook (outside of useEffect)
+      const ubData = UB.useData(); // ✅ Fetch once at the top
 
       if (!ubData) {
         console.warn("⚠️ UB Data is not ready yet.");
@@ -21,9 +21,28 @@
       }
 
       console.log("✅ UB Data Loaded:", ubData);
-      
-      return React.createElement("pre", null, JSON.stringify(ubData, null, 2));
-      
+
+      // ✅ Render Data in a Simple Table
+      return React.createElement("div", { className: "container" }, 
+        React.createElement("h3", null, "UB Data Preview"),
+        React.createElement("table", null, 
+          React.createElement("thead", null, 
+            React.createElement("tr", null, 
+              React.createElement("th", null, "ID"),
+              React.createElement("th", null, "Option Name")
+            )
+          ),
+          React.createElement("tbody", null, 
+            ubData.prepOptions.map(option => 
+              React.createElement("tr", { key: option.id }, 
+                React.createElement("td", null, option.id),
+                React.createElement("td", null, option.optionName)
+              )
+            )
+          )
+        )
+      );
+
     } catch (error) {
       console.error("🚨 UB Data Fetch Error:", error);
       return React.createElement("div", null, "❌ Error fetching UB data.");
