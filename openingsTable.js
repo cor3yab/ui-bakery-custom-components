@@ -4,37 +4,49 @@
 
     const { useState, useEffect } = React;
 
-    // ✅ State for table data & UB data
+    // ✅ State for UB data and table data
     const [tableData, setTableData] = useState([]);
     const [ubData, setUbData] = useState(null);
+    const [loading, setLoading] = useState(true); // ✅ Track loading state
 
-    // ✅ Ensure UB API is available
+    // ✅ Ensure UB API is available before running effects
     if (typeof UB === "undefined" || typeof UB.useData !== "function") {
       console.error("🚨 UB API is missing. Cannot load data.");
       return React.createElement("div", null, "🚨 UB API is not available.");
     }
 
-    // ✅ Fetch UB Data ONCE when the component is mounted
+    // ✅ Fetch UB Data **once** when the component mounts
     useEffect(() => {
-      console.log("🔹 Fetching UB Data...");
-      const data = UB.useData();
-      if (data) {
-        console.log("✅ UB Data Loaded:", data);
-        setUbData(data);
-        setTableData(data.savedData || []); // Load only once
-      } else {
-        console.warn("⚠️ UB Data is not ready yet.");
+      try {
+        console.log("🔹 Fetching UB Data...");
+        const data = UB.useData();
+        
+        if (data) {
+          console.log("✅ UB Data Loaded:", data);
+          setUbData(data);
+          setTableData(data.savedData || []);
+        } else {
+          console.warn("⚠️ UB Data is not ready yet.");
+        }
+      } catch (error) {
+        console.error("🚨 Error fetching UB Data:", error);
+      } finally {
+        setLoading(false); // ✅ Ensure loading state is updated
       }
-    }, []); // ✅ Empty dependency array ensures this runs only once
+    }, []); // ✅ Runs only once
+
+    // ✅ Prevent render errors while waiting for UB data
+    if (loading) {
+      return React.createElement("div", null, "⏳ Loading UB Data...");
+    }
+
+    if (!ubData) {
+      return React.createElement("div", null, "🚨 UB Data failed to load.");
+    }
 
     // ✅ Ensure UB data structure is correct
     const prepOptions = ubData?.prepOptions ?? [];
     const prepByOptions = ubData?.prepBy ?? [];
-
-    // ✅ Prevent render errors while waiting for UB data
-    if (!ubData) {
-      return React.createElement("div", null, "⏳ Loading UB Data...");
-    }
 
     // ✅ Event Handlers
     const handleAddRow = () => {
