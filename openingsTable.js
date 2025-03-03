@@ -2,11 +2,11 @@
   function OpeningsTable() {
     console.log("🔹 Component is initializing...");
 
-    const { useState } = React;
+    const { useState, useEffect } = React;
 
-    // ✅ State for table data & re-render trigger
+    // ✅ State for table data & UB data
     const [tableData, setTableData] = useState([]);
-    const [renderKey, setRenderKey] = useState(0); // ✅ Dummy state for forcing re-renders
+    const [ubData, setUbData] = useState(null);
 
     // ✅ Ensure UB API is available
     if (typeof UB === "undefined" || typeof UB.useData !== "function") {
@@ -14,27 +14,27 @@
       return React.createElement("div", null, "🚨 UB API is not available.");
     }
 
-    // ✅ Fetch UB Data
-    console.log("🔹 Fetching UB Data...");
-    const ubData = UB.useData();
-
-    if (!ubData) {
-      console.warn("⚠️ UB Data is not ready yet.");
-      setTimeout(() => setRenderKey(prev => prev + 1), 500); // ✅ Retry & force render
-      return React.createElement("div", null, "⏳ Loading UB Data...");
-    }
-
-    console.log("✅ UB Data Loaded:", ubData);
-
-    // ✅ Load UB data only once
-    if (tableData.length === 0 && ubData.savedData?.length) {
-      setTableData(ubData.savedData);
-      setTimeout(() => setRenderKey(prev => prev + 1), 0); // ✅ Ensure UI updates
-    }
+    // ✅ Fetch UB Data ONCE when the component is mounted
+    useEffect(() => {
+      console.log("🔹 Fetching UB Data...");
+      const data = UB.useData();
+      if (data) {
+        console.log("✅ UB Data Loaded:", data);
+        setUbData(data);
+        setTableData(data.savedData || []); // Load only once
+      } else {
+        console.warn("⚠️ UB Data is not ready yet.");
+      }
+    }, []); // ✅ Empty dependency array ensures this runs only once
 
     // ✅ Ensure UB data structure is correct
     const prepOptions = ubData?.prepOptions ?? [];
     const prepByOptions = ubData?.prepBy ?? [];
+
+    // ✅ Prevent render errors while waiting for UB data
+    if (!ubData) {
+      return React.createElement("div", null, "⏳ Loading UB Data...");
+    }
 
     // ✅ Event Handlers
     const handleAddRow = () => {
@@ -45,54 +45,64 @@
         cost: 0.0,
         incInList: false
       };
-      setTableData(prevData => [...prevData, newRow]);
-      UB.updateValue([...tableData, newRow]); // ✅ External UB Update
+      setTableData(prevData => {
+        const updatedData = [...prevData, newRow];
+        UB.updateValue(updatedData); // ✅ Update UB external data
+        return updatedData;
+      });
     };
 
     const handleEdit = (id, field, value) => {
-      const updatedData = tableData.map(row => {
-        if (row.id === id) {
-          let updatedRow = { ...row, [field]: value };
+      setTableData(prevData => {
+        const updatedData = prevData.map(row => {
+          if (row.id === id) {
+            let updatedRow = { ...row, [field]: value };
 
-          if (field === "prepBy" && value === "S") {
-            updatedRow.cost = row.prep && ubData?.supplierPreps?.[row.prep]?.cost || 0;
+            if (field === "prepBy" && value === "S") {
+              updatedRow.cost = row.prep && ubData?.supplierPreps?.[row.prep]?.cost || 0;
+            }
+            if (field === "prepBy" && value === "INH") {
+              updatedRow.cost = row.prep && ubData?.inHousePreps?.[row.prep]?.cost || 0;
+            }
+            if (field === "prep" && row.prepBy === "S") {
+              updatedRow.cost = ubData?.supplierPreps?.[value]?.cost || 0;
+            }
+            if (field === "prep" && row.prepBy === "INH") {
+              updatedRow.cost = ubData?.inHousePreps?.[value]?.cost || 0;
+            }
+            return updatedRow;
           }
-          if (field === "prepBy" && value === "INH") {
-            updatedRow.cost = row.prep && ubData?.inHousePreps?.[row.prep]?.cost || 0;
-          }
-          if (field === "prep" && row.prepBy === "S") {
-            updatedRow.cost = ubData?.supplierPreps?.[value]?.cost || 0;
-          }
-          if (field === "prep" && row.prepBy === "INH") {
-            updatedRow.cost = ubData?.inHousePreps?.[value]?.cost || 0;
-          }
-          return updatedRow;
-        }
-        return row;
+          return row;
+        });
+
+        UB.updateValue(updatedData); // ✅ Update UB external data
+        return updatedData;
       });
-
-      setTableData(updatedData);
-      UB.updateValue(updatedData);
     };
 
     const handleCheckboxChange = id => {
-      const updatedData = tableData.map(row => row.id === id ? {
-        ...row,
-        incInList: !row.incInList,
-        cost: !row.incInList ? 0 : row.cost,
-        prepBy: !row.incInList ? "S" : row.prepBy
-      } : row);
-      setTableData(updatedData);
-      UB.updateValue(updatedData);
+      setTableData(prevData => {
+        const updatedData = prevData.map(row => row.id === id ? {
+          ...row,
+          incInList: !row.incInList,
+          cost: !row.incInList ? 0 : row.cost,
+          prepBy: !row.incInList ? "S" : row.prepBy
+        } : row);
+        
+        UB.updateValue(updatedData);
+        return updatedData;
+      });
     };
 
     const handleDelete = id => {
-      const updatedData = tableData.filter(row => row.id !== id);
-      setTableData(updatedData);
-      UB.updateValue(updatedData);
+      setTableData(prevData => {
+        const updatedData = prevData.filter(row => row.id !== id);
+        UB.updateValue(updatedData);
+        return updatedData;
+      });
     };
 
-    return React.createElement("div", { className: "container", key: renderKey }, 
+    return React.createElement("div", { className: "container" }, 
       React.createElement("table", null, 
         React.createElement("thead", null, 
           React.createElement("tr", null, 
