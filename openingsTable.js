@@ -2,27 +2,34 @@
   function OpeningsTable() {
     console.log("🔹 Component is initializing...");
 
-    // ✅ Check if UB API is available
-    if (typeof UB === "undefined" || typeof UB.useData !== "function") {
-      console.error("🚨 UB API is missing. Cannot fetch data.");
-      return React.createElement("div", null, "🚨 UB API is not available.");
-    }
+    const { useState, useEffect } = React;
 
-    try {
-      console.log("🔹 Fetching UB Data...");
-      const ubData = UB.useData();
+    // ✅ State for UB Data
+    const [ubData, setUbData] = useState(null);
 
-      if (!ubData) {
-        console.warn("⚠️ UB Data is not ready yet.");
-        return React.createElement("div", null, "⏳ UB Data is not ready.");
+    useEffect(() => {
+      if (typeof UB === "undefined" || typeof UB.useData !== "function") {
+        console.error("🚨 UB API is missing. Cannot fetch data.");
+        return;
       }
 
-      console.log("✅ UB Data Loaded:", ubData);
-      return React.createElement("div", null, "✅ UB Data Loaded! Check console.");
-    } catch (error) {
-      console.error("🚨 Error fetching UB Data:", error);
-      return React.createElement("div", null, "🚨 Error loading UB Data.");
+      console.log("🔹 Fetching UB Data...");
+      const data = UB.useData();
+
+      if (!data) {
+        console.warn("⚠️ UB Data is not ready yet.");
+        return;
+      }
+
+      console.log("✅ UB Data Loaded:", data);
+      setUbData(data); // ✅ Store UB data in state
+    }, []); // ✅ Run only once when the component mounts
+
+    if (!ubData) {
+      return React.createElement("div", null, "⏳ UB Data is loading...");
     }
+
+    return React.createElement("div", null, "✅ UB Data Loaded! Check console.");
   }
 
   // ✅ Attach Component to Window for External Use
