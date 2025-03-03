@@ -2,47 +2,27 @@
   function OpeningsTable() {
     console.log("🔹 Component is initializing...");
 
-    const { useState, useEffect } = React;
+    // ✅ Check if UB API is available
+    if (typeof UB === "undefined" || typeof UB.useData !== "function") {
+      console.error("🚨 UB API is missing. Cannot fetch data.");
+      return React.createElement("div", null, "🚨 UB API is not available.");
+    }
 
-    // ✅ State for UB Data & Ensuring Single Fetch
-    const [ubData, setUbData] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    try {
+      console.log("🔹 Fetching UB Data...");
+      const ubData = UB.useData();
 
-    // ✅ Fetch UB Data Once (Properly)
-    useEffect(() => {
-      if (typeof UB === "undefined" || typeof UB.useData !== "function") {
-        console.error("🚨 UB API is missing. Cannot load data.");
-        setError("UB API is not available.");
-        setLoading(false);
-        return;
+      if (!ubData) {
+        console.warn("⚠️ UB Data is not ready yet.");
+        return React.createElement("div", null, "⏳ UB Data is not ready.");
       }
 
-      try {
-        console.log("🔹 Fetching UB Data...");
-        const data = UB.useData();
-
-        if (!data) {
-          console.warn("⚠️ UB Data is not ready yet. Retrying...");
-          setTimeout(() => setUbData(UB.useData()), 500);
-          return;
-        }
-
-        console.log("✅ UB Data Loaded:", data);
-        setUbData(data);
-        setLoading(false);
-      } catch (error) {
-        console.error("🚨 Error fetching UB Data:", error);
-        setError("Error loading UB data.");
-        setLoading(false);
-      }
-    }, []);
-
-    // ✅ Loading & Error Handling
-    if (loading) return React.createElement("div", null, "⏳ Loading UB Data...");
-    if (error) return React.createElement("div", null, `🚨 ${error}`);
-
-    return React.createElement("div", null, "✅ UB Data Loaded Successfully!");
+      console.log("✅ UB Data Loaded:", ubData);
+      return React.createElement("div", null, "✅ UB Data Loaded! Check console.");
+    } catch (error) {
+      console.error("🚨 Error fetching UB Data:", error);
+      return React.createElement("div", null, "🚨 Error loading UB Data.");
+    }
   }
 
   // ✅ Attach Component to Window for External Use
