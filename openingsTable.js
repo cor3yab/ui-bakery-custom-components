@@ -1,41 +1,50 @@
 (function () {
-  function OpeningsTable() {
-    console.log("🔹 Component is rendering...");
-
-    const { useState, useEffect, useRef } = React;
-
-    // ✅ State for UB Data
+  function useUbData() {
+    const { useState, useEffect } = React;
     const [ubData, setUbData] = useState(null);
-    const [tableData, setTableData] = useState([]);
-    const dataFetchedRef = useRef(false); // ✅ Ensure data is fetched only once
+    const [error, setError] = useState(null);
 
-    // ✅ Fetch UB Data Asynchronously
     useEffect(() => {
       async function fetchData() {
-        if (dataFetchedRef.current) return; // ✅ Prevent multiple fetches
-        if (typeof UB !== "undefined" && typeof UB.useData === "function") {
-          try {
+        try {
+          if (typeof UB !== "undefined" && typeof UB.useData === "function") {
             console.log("🔹 Fetching UB Data...");
-            const data = await UB.useData(); // 🔥 Ensure async call
+            const data = await UB.useData();
 
             if (data) {
               console.log("✅ UB Data Loaded:", data);
               setUbData(data);
-              setTableData(data.savedData ?? []);
-              dataFetchedRef.current = true; // ✅ Mark as fetched
             } else {
               console.warn("⚠️ UB.useData() returned undefined.");
             }
-          } catch (error) {
-            console.error("🚨 Error fetching UB Data:", error);
+          } else {
+            throw new Error("UB is not available.");
           }
-        } else {
-          console.error("🚨 UB is not available.");
+        } catch (err) {
+          console.error("🚨 Error fetching UB Data:", err);
+          setError(err);
         }
       }
 
-      fetchData(); // ✅ Run async fetch function
-    }, []); // ✅ Empty dependency ensures it runs only once
+      fetchData();
+    }, []);
+
+    return { ubData, error };
+  }
+
+  function OpeningsTable() {
+    console.log("🔹 Component is rendering...");
+
+    const { useState } = React;
+    const { ubData, error } = useUbData(); // ✅ Fetch UB Data via Custom Hook
+    const [tableData, setTableData] = useState([]);
+
+    // ✅ Populate tableData once UB data is available
+    React.useEffect(() => {
+      if (ubData?.savedData) {
+        setTableData(ubData.savedData);
+      }
+    }, [ubData]);
 
     // ✅ Event Handlers
     const handleAddRow = () => {
@@ -94,6 +103,10 @@
     };
 
     // ✅ Prevent Render Errors
+    if (error) {
+      return React.createElement("div", null, `🚨 Error: ${error.message}`);
+    }
+
     if (!ubData) {
       return React.createElement("div", null, "⏳ Loading...");
     }
@@ -102,7 +115,6 @@
     const prepOptions = ubData.prepOptions ?? [];
     const prepByOptions = ubData.prepBy ?? [];
 
-    // ✅ Fix row.cost issue
     return React.createElement("div", { className: "container" }, 
       React.createElement("table", null, 
         React.createElement("thead", null, 
