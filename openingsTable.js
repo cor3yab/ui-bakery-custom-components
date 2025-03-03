@@ -1,63 +1,51 @@
 (function () {
-  function useUbData() {
-    const { useState, useEffect } = React;
-    const [ubData, setUbData] = useState(null);
-    const [error, setError] = useState(null);
-    const [attempts, setAttempts] = useState(0);
+  function fetchUbData(callback) {
+    let attempts = 0;
 
-    useEffect(() => {
-      function fetchData() {
-        try {
-          if (typeof UB !== "undefined" && typeof UB.useData === "function") {
-            console.log("🔹 Fetching UB Data...");
-            const data = UB.useData();
+    function tryFetching() {
+      try {
+        if (typeof UB !== "undefined" && typeof UB.useData === "function") {
+          console.log("🔹 Fetching UB Data...");
+          const data = UB.useData();
 
-            if (data) {
-              console.log("✅ UB Data Loaded:", data);
-              setUbData(data);
-            } else {
-              console.warn("⚠️ UB.useData() returned undefined.");
-              setTimeout(fetchData, 500); // Retry in 500ms
-            }
+          if (data) {
+            console.log("✅ UB Data Loaded:", data);
+            callback(null, data);
           } else {
-            console.error("🚨 UB is not ready. Retrying...");
+            console.warn("⚠️ UB.useData() returned undefined. Retrying...");
             if (attempts < 5) {
-              setTimeout(() => {
-                setAttempts(prev => prev + 1);
-                fetchData();
-              }, 1000); // Wait 1 sec and retry
+              attempts++;
+              setTimeout(tryFetching, 1000); // Retry every second
             } else {
-              setError(new Error("UB failed to initialize after 5 attempts."));
+              callback(new Error("UB.useData() failed after 5 attempts"));
             }
           }
-        } catch (err) {
-          console.error("🚨 Error fetching UB Data:", err);
-          setError(err);
+        } else {
+          console.error("🚨 UB is not ready. Retrying...");
+          if (attempts < 5) {
+            attempts++;
+            setTimeout(tryFetching, 1000);
+          } else {
+            callback(new Error("UB API not available"));
+          }
         }
+      } catch (err) {
+        callback(err);
       }
+    }
 
-      fetchData();
-    }, []);
-
-    return { ubData, error };
+    tryFetching();
   }
 
-  function OpeningsTable() {
+  function OpeningsTable({ ubData }) {
     console.log("🔹 Component is rendering...");
 
-    const { useState, useEffect } = React;
-    const { ubData, error } = useUbData(); // ✅ Fetch UB Data via Custom Hook
-    const [tableData, setTableData] = useState([]);
+    const { useState } = React;
+    const [tableData, setTableData] = useState(ubData?.savedData ?? []);
 
-    // ✅ Populate tableData once UB data is available
-    useEffect(() => {
-      if (ubData?.savedData) {
-        setTableData(ubData.savedData.map(row => ({
-          ...row,
-          cost: typeof row.cost === "number" ? row.cost : 0 // Ensure cost is a number
-        })));
-      }
-    }, [ubData]);
+    // ✅ Ensure valid data
+    const prepOptions = ubData?.prepOptions ?? [];
+    const prepByOptions = ubData?.prepBy ?? [];
 
     // ✅ Event Handlers
     const handleAddRow = () => {
@@ -114,19 +102,6 @@
       setTableData(updatedData);
       UB.updateValue(updatedData);
     };
-
-    // ✅ Prevent Render Errors
-    if (error) {
-      return React.createElement("div", null, `🚨 Error: ${error.message}`);
-    }
-
-    if (!ubData) {
-      return React.createElement("div", null, "⏳ Loading UB Data...");
-    }
-
-    // ✅ Ensure UB data structure
-    const prepOptions = ubData.prepOptions ?? [];
-    const prepByOptions = ubData.prepBy ?? [];
 
     return React.createElement("div", { className: "container" }, 
       React.createElement("table", null, 
@@ -185,6 +160,13 @@
     );
   }
 
-  // ✅ Ensure Global Availability
-  window.OpeningsTable = OpeningsTable;
+  // ✅ Fetch UB Data and Then Render Component
+  fetchUbData((err, ubData) => {
+    if (err) {
+      console.error("🚨 UB Data Fetch Error:", err);
+      window.OpeningsTable = () => React.createElement("div", null, `🚨 Error: ${err.message}`);
+    } else {
+      window.OpeningsTable = () => React.createElement(OpeningsTable, { ubData });
+    }
+  });
 })();
