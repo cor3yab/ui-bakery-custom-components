@@ -4,33 +4,43 @@
 
     const { useState } = React;
 
-    // ✅ State for Table Data
+    // ✅ State for UB Data & Table Data
+    const [ubData, setUbData] = useState(null);
     const [tableData, setTableData] = useState([]);
 
-    // ✅ Ensure UB API is available
-    if (typeof UB === "undefined" || typeof UB.useData !== "function") {
-      console.error("🚨 UB API is missing. Cannot load data.");
-      return React.createElement("div", null, "🚨 UB API is not available.");
-    }
+    // ✅ Lazy Fetch UB Data **Only When Needed**
+    const fetchUBData = () => {
+      if (ubData) return; // ✅ Don't fetch again if data is already set
 
-    // ✅ Fetch Data Directly from UB When Component is Created
-    const ubData = UB.useData();
+      if (typeof UB !== "undefined" && typeof UB.useData === "function") {
+        console.log("🔹 Fetching UB Data...");
+        const data = UB.useData();
 
+        if (data) {
+          console.log("✅ UB Data Loaded:", data);
+          setUbData(data);
+          setTableData(data.savedData ?? []);
+        } else {
+          console.warn("⚠️ UB Data is not ready yet.");
+        }
+      } else {
+        console.error("🚨 UB API is not available.");
+      }
+    };
+
+    // ✅ Ensure UB Data is Loaded Before Proceeding
+    fetchUBData();
+
+    // ✅ Show Loading Message if Data is Not Ready
     if (!ubData) {
-      console.warn("⚠️ UB Data is not ready yet.");
       return React.createElement("div", null, "⏳ Loading UB Data...");
     }
 
-    console.log("✅ UB Data Loaded:", ubData);
+    console.log("✅ Final UB Data:", ubData);
 
-    // ✅ Ensure UB data structure is correct
+    // ✅ Ensure UB data structure
     const prepOptions = ubData?.prepOptions ?? [];
     const prepByOptions = ubData?.prepBy ?? [];
-    
-    // ✅ Load initial data if not set
-    if (tableData.length === 0 && ubData.savedData?.length) {
-      setTableData(ubData.savedData);
-    }
 
     // ✅ Event Handlers
     const handleAddRow = () => {
@@ -42,7 +52,7 @@
         incInList: false
       };
       setTableData(prevData => [...prevData, newRow]);
-      UB.updateValue([...tableData, newRow]); // ✅ External UB Update
+      UB.updateValue([...tableData, newRow]); // ✅ Update UB Data
     };
 
     const handleEdit = (id, field, value) => {
@@ -127,9 +137,7 @@
               )
             ), 
             React.createElement("td", null, 
-              React.createElement("span", null, 
-                `$${Number(row.cost || 0).toFixed(2)}`
-              )
+              React.createElement("span", null, `$${Number(row.cost || 0).toFixed(2)}`)
             ), 
             React.createElement("td", null, 
               React.createElement("button", { className: "delete-button", onClick: () => handleDelete(row.id) }, 
